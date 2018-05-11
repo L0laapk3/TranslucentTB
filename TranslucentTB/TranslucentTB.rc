@@ -92,7 +92,7 @@ BEGIN
         POPUP "Show Aero Peek"
         BEGIN
             MENUITEM "Always",                      IDM_PEEK
-			MENUITEM "Dynamic (Generous)",			IDM_DPEEKGENEROUS
+            MENUITEM "Dynamic (Generous)",          IDM_DPEEKGENEROUS
             MENUITEM "Dynamic (Greedy)",            IDM_DPEEK
             MENUITEM "Never",                       IDM_NOPEEK
         END
