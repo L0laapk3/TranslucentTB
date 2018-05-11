@@ -18,6 +18,7 @@ public:
 	static enum /*class*/ PEEK {
 		Disabled,		// Hide the button
 		Dynamic,		// Show when a window is maximised
+		DynamicGenerous,// Show when any window is open on any monitor
 		Enabled			// Don't hide the button
 	} PEEK;
 

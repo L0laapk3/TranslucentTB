@@ -17,7 +17,7 @@ uint32_t Config::DYNAMIC_COLOR = 0x00000000;
 bool Config::DYNAMIC_REGULAR_ON_PEEK = true;
 bool Config::DYNAMIC_USE_REGULAR_COLOR = false;
 bool Config::DYNAMIC_START = false;
-enum Config::PEEK Config::PEEK = PEEK::Dynamic;
+enum Config::PEEK Config::PEEK = PEEK::DynamicGenerous;
 
 uint8_t Config::SLEEP_TIME = 10;
 bool Config::VERBOSE =
@@ -102,6 +102,9 @@ void Config::Save(const std::wstring &file)
 		break;
 	case PEEK::Dynamic:
 		configstream << L"dynamic";
+		break;
+	case PEEK::DynamicGenerous:
+		configstream << L"dynamicgenerous";
 		break;
 	case PEEK::Enabled:
 		configstream << L"show";
@@ -298,6 +301,10 @@ void Config::ParseSingleConfigOption(const std::wstring &arg, const std::wstring
 		else if (value == L"dynamic")
 		{
 			PEEK = PEEK::Dynamic;
+		}
+		else if (value == L"dynamicgenerous")
+		{
+			PEEK = PEEK::DynamicGenerous;
 		}
 		else if (value == L"show")
 		{

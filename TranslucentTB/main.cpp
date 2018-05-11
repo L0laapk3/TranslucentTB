@@ -75,9 +75,10 @@ static const std::unordered_map<swca::ACCENT, uint32_t> DYNAMIC_BUTTON_MAP = {
 };
 
 static const std::unordered_map<enum Config::PEEK, uint32_t> PEEK_BUTTON_MAP = {
-	{ Config::PEEK::Enabled,		IDM_PEEK   },
-	{ Config::PEEK::Dynamic,		IDM_DPEEK  },
-	{ Config::PEEK::Disabled,		IDM_NOPEEK }
+	{ Config::PEEK::Enabled,		  IDM_PEEK          },
+	{ Config::PEEK::DynamicGenerous,  IDM_DPEEKGENEROUS },
+	{ Config::PEEK::Dynamic,		  IDM_DPEEK         },
+	{ Config::PEEK::Disabled,		  IDM_NOPEEK        }
 };
 
 #pragma endregion
@@ -349,23 +350,65 @@ void RefreshMenu(HMENU menu)
 
 #pragma region Main logic
 
+bool isRealWindow(const HWND hwnd)
+{
+	TITLEBARINFO ti;
+	HWND hwndTry, hwndWalk = NULL;
+
+	if (!IsWindowVisible(hwnd))
+		return FALSE;
+
+	hwndTry = GetAncestor(hwnd, GA_ROOTOWNER);
+	while (hwndTry != hwndWalk)
+	{
+		hwndWalk = hwndTry;
+		hwndTry = GetLastActivePopup(hwndWalk);
+		if (IsWindowVisible(hwndTry))
+			break;
+	}
+	if (hwndWalk != hwnd)
+		return FALSE;
+
+	// the following removes some task tray programs and "Program Manager"
+	ti.cbSize = sizeof(ti);
+	GetTitleBarInfo(hwnd, &ti);
+	if (ti.rgstate[0] & STATE_SYSTEM_INVISIBLE)
+		return FALSE;
+
+	// Tool windows should not be displayed either, these do not appear in the
+	// task bar.
+	if (GetWindowLong(hwnd, GWL_EXSTYLE) & WS_EX_TOOLWINDOW)
+		return FALSE;
+
+	return TRUE;
+}
+
 BOOL CALLBACK EnumWindowsProcess(const HWND hWnd, LPARAM)
 {
 	const Window window = hWnd;
 	// IsWindowCloaked should take care of checking if it's on the current desktop.
 	// But that's undefined behavior.
 	// So eh, do both but with IsWindowOnCurrentDesktop last.
-	if (window.visible() && window.state() == SW_MAXIMIZE && !window.get_attribute<BOOL>(DWMWA_CLOAKED) && !Blacklist::IsBlacklisted(window) && window.on_current_desktop())
+	if (window.visible() && !window.get_attribute<BOOL>(DWMWA_CLOAKED) && !Blacklist::IsBlacklisted(window))
 	{
-		auto &taskbar = run.taskbars.at(window.monitor());
-		if (Config::DYNAMIC_WS)
+		if (window.state() == SW_MAXIMIZE && window.on_current_desktop())
 		{
-			taskbar.second = MONITORSTATE::WindowMaximised;
-		}
+			auto &taskbar = run.taskbars.at(window.monitor());
+			if (Config::DYNAMIC_WS)
+			{
+				taskbar.second = MONITORSTATE::WindowMaximised;
+			}
 
-		if (Config::PEEK == Config::PEEK::Dynamic && taskbar.first == run.main_taskbar)
-		{
-			run.should_show_peek = true;
+			if ((Config::PEEK == Config::PEEK::Dynamic || Config::PEEK == Config::PEEK::DynamicGenerous) && taskbar.first == run.main_taskbar)
+			{
+				run.should_show_peek = true;
+			}
+		}
+		else {
+			if (Config::PEEK == Config::PEEK::DynamicGenerous && !run.should_show_peek && window.state() != SW_SHOWMINIMIZED && isRealWindow(window))
+			{
+				run.should_show_peek = true;
+			}
 		}
 	}
 	return true;
@@ -390,7 +433,7 @@ void SetTaskbarBlur()
 		{
 			taskbar.second.second = MONITORSTATE::Normal; // Reset taskbar state
 		}
-		if (Config::DYNAMIC_WS || Config::PEEK == Config::PEEK::Dynamic)
+		if (Config::DYNAMIC_WS || Config::PEEK == Config::PEEK::Dynamic || Config::PEEK == Config::PEEK::DynamicGenerous)
 		{
 			counter = 0;
 			EnumWindows(&EnumWindowsProcess, NULL);

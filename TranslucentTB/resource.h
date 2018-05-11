@@ -16,9 +16,10 @@
 #define IDM_DYNAMICWS                   210
 #define IDM_DYNAMICSTART                211
 #define IDM_PEEK                        212
-#define IDM_DPEEK                       213
-#define IDM_NOPEEK                      214
-#define IDM_COLOR                       215
+#define IDM_DPEEKGENEROUS               213
+#define IDM_DPEEK                       214
+#define IDM_NOPEEK                      215
+#define IDM_COLOR                       216
 #define IDM_DYNAMICWS_BLUR              40005
 #define IDM_DYNAMICWS_NORMAL            40006
 #define IDM_DYNAMICWS_OPAQUE            40007
